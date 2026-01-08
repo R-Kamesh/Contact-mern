@@ -10,11 +10,11 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://demo:demo123@cluster0.mongodb.net/contacts?retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.connect(MONGODB_URI)
-.then(() => console.log('✅ MongoDB connected successfully'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
+  .then(() => console.log('✅ MongoDB connected successfully'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // Contact Schema
 const contactSchema = new mongoose.Schema({
@@ -28,7 +28,12 @@ const contactSchema = new mongoose.Schema({
 
 const Contact = mongoose.model('Contact', contactSchema);
 
-// Routes
+// ======================= ROUTES =======================
+
+// 🔹 API Root Route (THIS FIXES "Cannot GET /api")
+app.get('/api', (req, res) => {
+  res.json({ message: 'Contact Manager API is running!' });
+});
 
 // Get all contacts
 app.get('/api/contacts', async (req, res) => {
@@ -93,7 +98,7 @@ app.delete('/api/contacts/:id', async (req, res) => {
   try {
     const contact = await Contact.findById(req.params.id);
     if (!contact) return res.status(404).json({ message: 'Contact not found' });
-    
+
     await Contact.findByIdAndDelete(req.params.id);
     res.json({ message: 'Contact deleted' });
   } catch (err) {
@@ -122,5 +127,6 @@ app.get('/', (req, res) => {
   res.json({ message: 'Contact Manager API is running!' });
 });
 
+// Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
